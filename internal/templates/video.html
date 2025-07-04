@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Video – {{.VideoName}}</title>
+    <link href="/static/css/default.css?v={{now}}" rel="stylesheet"/>
+    <link href="/static/js/video-js.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+</head>
+<body>
+<h1>{{.VideoName}}</h1>
+
+<div class="container">
+    <div class="video-wrapper">
+        <video class="video-js" controls preload="auto"
+               data-setup="{}">
+            <source src="/videos/src?file={{.VideoName}}&dir={{.VideoDir}}" type="video/mp4">
+            Dein Browser unterstützt das Videoformat nicht.
+        </video>
+    </div>
+</div>
+
+<script src="/static/js/video.js"></script>
+</body>
+</html>

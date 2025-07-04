@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Jumply</title>
+    <link href="/static/css/default.css?v={{now}}" rel="stylesheet" />
+
+    {{range .VideoFiles.Content}}
+
+    {{end}}
+
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+</head>
+<body>
+<h1>Jumply</h1>
+
+<div class="container">
+    <form
+            hx-get="/"
+            hx-target="#video-list"
+            hx-push-url="true"
+            hx-trigger="input changed delay:300ms">
+        <input
+                type="text"
+                name="search"
+                placeholder="🔍 Suche nach Video..."
+                value="{{.Search}}"
+                class="search-input"
+        />
+    </form>
+
+    <div id="video-list">
+        <ul>
+            {{range .VideoFiles.Content}}
+            <li>
+                <a href="/videos/play?file={{.Path}}&dir={{.Dir}}" class="card-link">
+                    {{.Name}}
+                </a>
+            </li>
+            {{else}}
+            <li>Keine Videos gefunden.</li>
+            {{end}}
+        </ul>
+
+        <nav class="pagination">
+            {{if gt .VideoFiles.Page 1}}
+            <a href="/?page={{add .VideoFiles.Page -1}}" class="prev">← Zurück</a>
+            {{end}}
+
+            <span>Seite {{.VideoFiles.Page}} von {{.VideoFiles.TotalPages}}</span>
+
+            {{if lt .VideoFiles.Page .VideoFiles.TotalPages}}
+            <a href="/?page={{add .VideoFiles.Page 1}}" class="next">Weiter →</a>
+            {{end}}
+        </nav>
+    </div>
+
+    <a href="/reload" class="reload-link">🔄 Rescan Videos</a>
+</div>
+</body>
+</html>
