@@ -71,6 +71,10 @@ func main() {
 		}
 
 		search := c.QueryParam("search")
+		if search != "" && c.QueryParam("page") == "" {
+			page = 1
+		}
+
 		var items []videos.Video
 		if search == "" {
 			items = videos.GetAll()
