@@ -6,6 +6,7 @@ import (
 	"github.com/Serbroda/jumply/internal/files"
 	"github.com/Serbroda/jumply/internal/templates"
 	"github.com/Serbroda/jumply/internal/utils"
+	"github.com/Serbroda/jumply/internal/videos"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -20,8 +21,7 @@ import (
 )
 
 var (
-	VideoFiles = utils.NewCacheList[files.FileEntry]()
-	Version    = "dev"
+	Version = "dev"
 )
 
 func main() {
@@ -45,16 +45,17 @@ func main() {
 	e.Renderer = templates.NewTemplateRenderer()
 
 	e.GET("/", func(c echo.Context) error {
-		if VideoFiles.IsEmpty() {
+		if videos.IsEmpty() {
 			rg, err := regexp.Compile(videoFileRegex)
 			if err != nil {
 				panic(err)
 			}
-			vs := files.ScanAll(rootDirs, rg)
-			VideoFiles.AddAll(utils.MapSlice(vs, func(item files.FileEntry) utils.CacheItem[files.FileEntry] {
-				return utils.CacheItem[files.FileEntry]{
-					Id:   item.Path,
-					Item: item,
+
+			fs := files.ScanAll(rootDirs, rg)
+			videos.AddAll(utils.MapSlice(fs, func(item files.FileEntry) videos.Video {
+				return videos.Video{
+					Id:        utils.GenerateID(item.Path),
+					FileEntry: item,
 				}
 			}))
 		}
@@ -67,20 +68,13 @@ func main() {
 		if err != nil || size < 1 {
 			size = int(defaultSize)
 		}
+
 		search := c.QueryParam("search")
-		items := VideoFiles.ItemValues()
-		if search != "" {
-			items = utils.FilterSlice(items, func(item files.FileEntry) bool {
-				name := strings.ToLower(item.Name)
-				s := strings.ToLower(search)
-				if strings.Contains(name, s) {
-					return true
-				}
-				if strings.Contains(strings.ReplaceAll(name, ".", " "), s) {
-					return true
-				}
-				return false
-			})
+		var items []videos.Video
+		if search == "" {
+			items = videos.GetAll()
+		} else {
+			items = videos.Filter(search)
 		}
 		pagination := utils.Paginate(items, page, size)
 		return c.Render(http.StatusOK, "index.html", map[string]any{
@@ -157,7 +151,7 @@ func main() {
 	})
 
 	e.GET("/reload", func(c echo.Context) error {
-		VideoFiles.Clear()
+		videos.Clear()
 		return c.Redirect(http.StatusPermanentRedirect, "/")
 	})
 

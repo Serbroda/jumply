@@ -25,7 +25,7 @@ func Scan(root string, pattern *regexp.Regexp) ([]FileEntry, error) {
 		relativePath, err := filepath.Rel(root, path)
 
 		if err != nil {
-			return nil // skip file on ffprobe error
+			return nil
 		}
 
 		videos = append(videos, FileEntry{
