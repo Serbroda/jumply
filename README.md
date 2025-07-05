@@ -60,11 +60,13 @@ Create a `.env` file in the project root with the following content:
 SERVER_PORT=8080
 ROOT_DIRS=./testdata/root1;./testdata/root2
 DEFAULT_PAGE_SIZE=20
+VIDEO_FILE_REGEX=^[^.].*\.(mp4|avi|mkv)$
 ```
 
 - `SERVER_PORT`: The port your server will run on
 - `ROOT_DIRS`: Semicolon-separated list of root directories to scan recursively for video files
 - `DEFAULT_PAGE_SIZE`: How many videos to show per page
+- `VIDEO_FILE_REGEX`: Regex filter for scanning files from root dirs
 
 If no `.env` file is present, Jumply will fall back to built-in defaults.
 

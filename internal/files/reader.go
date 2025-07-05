@@ -29,13 +29,28 @@ func Scan(root string, pattern *regexp.Regexp) ([]FileEntry, error) {
 		}
 
 		videos = append(videos, FileEntry{
-			Path: relativePath,
-			Name: info.Name(),
-			Size: info.Size(),
-			Dir:  root,
+			Path:      relativePath,
+			Name:      info.Name(),
+			Size:      info.Size(),
+			Dir:       root,
+			ModTime:   info.ModTime(),
+			Extension: filepath.Ext(path),
 		})
 		return nil
 	})
 
 	return videos, err
+}
+
+func ScanAll(rootDirs []string, rg *regexp.Regexp) []FileEntry {
+	var videos []FileEntry
+	for _, rootDir := range rootDirs {
+		vs, err := Scan(rootDir, rg)
+		if err == nil {
+			for _, v := range vs {
+				videos = append(videos, v)
+			}
+		}
+	}
+	return videos
 }

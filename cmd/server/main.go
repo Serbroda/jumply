@@ -36,6 +36,7 @@ func main() {
 
 	rootDirs := strings.Split(utils.MustGetString("ROOT_DIRS"), ";")
 	defaultSize := utils.GetInt32Fallback("DEFAULT_PAGE_SIZE", 20)
+	videoFileRegex := utils.GetStringFallback("VIDEO_FILE_REGEX", `^[^.].*\.(mp4|avi|mkv)$`)
 
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -45,11 +46,11 @@ func main() {
 
 	e.GET("/", func(c echo.Context) error {
 		if VideoFiles.IsEmpty() {
-			rg, err := regexp.Compile(`^[^.].*\.(mp4|avi|mkv)$`)
+			rg, err := regexp.Compile(videoFileRegex)
 			if err != nil {
 				panic(err)
 			}
-			vs := scanAll(rootDirs, rg)
+			vs := files.ScanAll(rootDirs, rg)
 			VideoFiles.AddAll(utils.MapSlice(vs, func(item files.FileEntry) utils.CacheItem[files.FileEntry] {
 				return utils.CacheItem[files.FileEntry]{
 					Id:   item.Path,
@@ -169,17 +170,4 @@ func printRoutes(e *echo.Echo) {
 	for _, r := range e.Routes() {
 		log.Debugf(" - %v %v\n", r.Method, r.Path)
 	}
-}
-
-func scanAll(rootDirs []string, rg *regexp.Regexp) []files.FileEntry {
-	var videos []files.FileEntry
-	for _, rootDir := range rootDirs {
-		vs, err := files.Scan(rootDir, rg)
-		if err == nil {
-			for _, v := range vs {
-				videos = append(videos, v)
-			}
-		}
-	}
-	return videos
 }
