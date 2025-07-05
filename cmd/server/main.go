@@ -9,8 +9,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strconv"
@@ -43,7 +45,7 @@ func main() {
 
 	e.GET("/", func(c echo.Context) error {
 		if VideoFiles.IsEmpty() {
-			rg, err := regexp.Compile("^[^.].*\\.mp4$")
+			rg, err := regexp.Compile(`^[^.].*\.(mp4|avi|mkv)$`)
 			if err != nil {
 				panic(err)
 			}
@@ -62,7 +64,7 @@ func main() {
 		}
 		size, err := strconv.Atoi(c.QueryParam("size"))
 		if err != nil || size < 1 {
-			size = defaultSize
+			size = int(defaultSize)
 		}
 		search := c.QueryParam("search")
 		items := VideoFiles.ItemValues()
@@ -70,7 +72,7 @@ func main() {
 			items = utils.FilterSlice(items, func(item files.FileEntry) bool {
 				name := strings.ToLower(item.Name)
 				s := strings.ToLower(search)
-				if strings.Contains(name, search) {
+				if strings.Contains(name, s) {
 					return true
 				}
 				if strings.Contains(strings.ReplaceAll(name, ".", " "), s) {
@@ -94,13 +96,65 @@ func main() {
 			"VideoDir":  dir,
 		})
 	})
+
 	e.GET("/videos/src", func(c echo.Context) error {
 		file := c.QueryParam("file")
 		dir := c.QueryParam("dir")
 		p := path.Join(dir, file)
-		fmt.Println(p, "=", utils.FileExists(p))
 		return c.File(p)
 	})
+
+	e.GET("/videos/stream", func(c echo.Context) error {
+		file := c.QueryParam("file")
+		dir := c.QueryParam("dir")
+		inputPath := path.Join(dir, file)
+
+		if inputPath == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "Missing file parameter")
+		}
+
+		// redirect for mp4 files. no transcode necessary
+		if strings.HasSuffix(strings.ToLower(file), ".mp4") {
+			return c.Redirect(http.StatusTemporaryRedirect, "/videos/src?file="+file+"&dir="+dir)
+		}
+
+		// check if ffmpeg is available
+		_, err := exec.LookPath("ffmpeg")
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError,
+				"ffmpeg not found: required to stream non-MP4 videos like "+file)
+		}
+
+		// ffmpeg transcode
+		cmd := exec.Command("ffmpeg",
+			"-i", inputPath,
+			"-f", "mp4",
+			"-movflags", "frag_keyframe+empty_moov",
+			"-vcodec", "libx264",
+			"-acodec", "aac",
+			"pipe:1",
+		)
+
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			return err
+		}
+
+		if err := cmd.Start(); err != nil {
+			return err
+		}
+
+		c.Response().Header().Set(echo.HeaderContentType, "video/mp4")
+		c.Response().WriteHeader(http.StatusOK)
+
+		_, err = io.Copy(c.Response(), stdout)
+		if err != nil {
+			return err
+		}
+
+		return cmd.Wait()
+	})
+
 	e.GET("/reload", func(c echo.Context) error {
 		VideoFiles.Clear()
 		return c.Redirect(http.StatusPermanentRedirect, "/")
