@@ -33,7 +33,7 @@
         <ul>
             {{range .VideoFiles.Content}}
             <li>
-                <a href="/videos/play?file={{.Path}}&dir={{.Dir}}" class="card-link">
+                <a href="/videos/play/{{.Id}}" class="card-link">
                     {{.Name}}
                 </a>
             </li>

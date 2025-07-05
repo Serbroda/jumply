@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/Serbroda/jumply/internal/files"
@@ -83,41 +84,64 @@ func main() {
 		})
 	})
 
-	e.GET("/videos/play", func(c echo.Context) error {
-		file := c.QueryParam("file")
-		dir := c.QueryParam("dir")
+	e.GET("/videos/play/:id", func(c echo.Context) error {
+		id := c.Param("id")
+		file, err := videos.GetById(id)
+		if err != nil {
+			if errors.Is(err, videos.ErrNotFound) {
+				return echo.NewHTTPError(http.StatusNotFound, "video not found")
+			} else {
+				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+			}
+		}
+
 		return c.Render(http.StatusOK, "video.html", map[string]any{
-			"VideoName": file,
-			"VideoDir":  dir,
+			"Video": file,
 		})
 	})
 
-	e.GET("/videos/src", func(c echo.Context) error {
-		file := c.QueryParam("file")
-		dir := c.QueryParam("dir")
-		p := path.Join(dir, file)
+	e.GET("/videos/source/:id", func(c echo.Context) error {
+		id := c.Param("id")
+		file, err := videos.GetById(id)
+		if err != nil {
+			if errors.Is(err, videos.ErrNotFound) {
+				return echo.NewHTTPError(http.StatusNotFound, "video not found")
+			} else {
+				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+			}
+		}
+
+		p := path.Join(file.Dir, file.Name)
 		return c.File(p)
 	})
 
-	e.GET("/videos/stream", func(c echo.Context) error {
-		file := c.QueryParam("file")
-		dir := c.QueryParam("dir")
-		inputPath := path.Join(dir, file)
+	e.GET("/videos/stream/:id", func(c echo.Context) error {
+		id := c.Param("id")
+		file, err := videos.GetById(id)
+		if err != nil {
+			if errors.Is(err, videos.ErrNotFound) {
+				return echo.NewHTTPError(http.StatusNotFound, "video not found")
+			} else {
+				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+			}
+		}
+
+		inputPath := path.Join(file.Dir, file.Name)
 
 		if inputPath == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "Missing file parameter")
 		}
 
 		// redirect for mp4 files. no transcode necessary
-		if strings.HasSuffix(strings.ToLower(file), ".mp4") {
-			return c.Redirect(http.StatusTemporaryRedirect, "/videos/src?file="+file+"&dir="+dir)
+		if strings.HasSuffix(strings.ToLower(file.Name), ".mp4") {
+			return c.Redirect(http.StatusTemporaryRedirect, "/videos/source/"+file.Id)
 		}
 
 		// check if ffmpeg is available
-		_, err := exec.LookPath("ffmpeg")
+		_, err = exec.LookPath("ffmpeg")
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError,
-				"ffmpeg not found: required to stream non-MP4 videos like "+file)
+				"ffmpeg not found: required to stream non-MP4 videos like "+file.Name)
 		}
 
 		// ffmpeg transcode
