@@ -45,12 +45,12 @@ func (h *Handlers) GetIndex(c echo.Context) error {
 		}))
 	}
 
-	page, err := strconv.Atoi(c.QueryParam("page"))
-	if err != nil || page < 1 {
+	page, _ := strconv.Atoi(c.QueryParam("page"))
+	if page < 1 {
 		page = 1
 	}
-	size, err := strconv.Atoi(c.QueryParam("size"))
-	if err != nil || size < 1 {
+	size, _ := strconv.Atoi(c.QueryParam("size"))
+	if size < 1 {
 		size = h.DefaultPageSize
 	}
 
@@ -65,10 +65,46 @@ func (h *Handlers) GetIndex(c echo.Context) error {
 	} else {
 		items = videos.Filter(search)
 	}
+
+	sortBy := c.QueryParam("sort")
+	if sortBy == "" {
+		sortBy = "name"
+	}
+	order := c.QueryParam("order")
+	if order == "" {
+		order = "asc"
+	}
+	desc := strings.ToLower(order) == "desc"
+
+	utils.SortSlice(items, func(a, b videos.Video) bool {
+		switch sortBy {
+		case "size":
+			return a.Size < b.Size
+		case "modtime":
+			return a.ModTime.Before(b.ModTime)
+		default:
+			return a.Name < b.Name
+		}
+	}, desc)
+
 	pagination := utils.Paginate(items, page, size)
+
+	if c.Request().Header.Get("HX-Request") != "" {
+		// HTMX request: send only partial template
+		return c.Render(http.StatusOK, "video_files_partials.html", map[string]any{
+			"VideoFiles": pagination,
+			"Search":     search,
+			"Sort":       sortBy,
+			"Order":      order,
+		})
+	}
+
+	// Normal full page
 	return c.Render(http.StatusOK, "index.html", map[string]any{
 		"VideoFiles": pagination,
 		"Search":     search,
+		"Sort":       sortBy,
+		"Order":      order,
 	})
 }
 

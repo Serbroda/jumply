@@ -1,6 +1,9 @@
 package utils
 
-import "math"
+import (
+	"math"
+	"sort"
+)
 
 type Page[T any] struct {
 	Page             int `json:"page"`
@@ -54,4 +57,13 @@ func FilterSlice[T any](slice []T, predicate func(T) bool) []T {
 		}
 	}
 	return result
+}
+
+func SortSlice[T any](slice []T, less func(a, b T) bool, desc bool) {
+	sort.Slice(slice, func(i, j int) bool {
+		if desc {
+			return less(slice[j], slice[i])
+		}
+		return less(slice[i], slice[j])
+	})
 }

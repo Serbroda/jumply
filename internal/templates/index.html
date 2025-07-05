@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <title>Jumply</title>
     <link href="/static/css/default.css?v={{now}}" rel="stylesheet" />
-
-    {{range .VideoFiles.Content}}
-
-    {{end}}
-
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
 </head>
 <body>
@@ -19,7 +14,7 @@
             hx-get="/"
             hx-target="#video-list"
             hx-push-url="true"
-            hx-trigger="input changed delay:300ms">
+            hx-trigger="input changed delay:300ms, change">
         <input
                 type="text"
                 name="search"
@@ -27,32 +22,22 @@
                 value="{{.Search}}"
                 class="search-input"
         />
+
+        <label for="sort">Sortieren nach:</label>
+        <select name="sort">
+            <option value="name" {{if eq .Sort "name"}}selected{{end}}>Name</option>
+            <option value="size" {{if eq .Sort "size"}}selected{{end}}>Größe</option>
+            <option value="modtime" {{if eq .Sort "modtime"}}selected{{end}}>Geändert am</option>
+        </select>
+
+        <select name="order">
+            <option value="asc" {{if eq .Order "asc"}}selected{{end}}>↑ Aufsteigend</option>
+            <option value="desc" {{if eq .Order "desc"}}selected{{end}}>↓ Absteigend</option>
+        </select>
     </form>
 
     <div id="video-list">
-        <ul>
-            {{range .VideoFiles.Content}}
-            <li>
-                <a href="/videos/play/{{.Id}}" class="card-link">
-                    {{.Name}}
-                </a>
-            </li>
-            {{else}}
-            <li>Keine Videos gefunden.</li>
-            {{end}}
-        </ul>
-
-        <nav class="pagination">
-            {{if gt .VideoFiles.Page 1}}
-            <a href="/?page={{add .VideoFiles.Page -1}}&search={{.Search}}" class="prev">← Previous</a>
-            {{end}}
-
-            <span>Seite {{.VideoFiles.Page}} von {{.VideoFiles.TotalPages}}</span>
-
-            {{if lt .VideoFiles.Page .VideoFiles.TotalPages}}
-            <a href="/?page={{add .VideoFiles.Page 1}}&search={{.Search}}" class="next">Next →</a>
-            {{end}}
-        </nav>
+        {{template "video_files_partials.html" .}}
     </div>
 
     <a href="/reload" class="reload-link">🔄 Rescan Videos</a>

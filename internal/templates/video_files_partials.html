@@ -1,0 +1,23 @@
+<ul>
+    {{range .VideoFiles.Content}}
+    <li>
+        <a href="/videos/play/{{.Id}}" class="card-link">
+            {{.Name}}
+        </a>
+    </li>
+    {{else}}
+    <li>Keine Videos gefunden.</li>
+    {{end}}
+</ul>
+
+<nav class="pagination">
+    {{if gt .VideoFiles.Page 1}}
+    <a href="/?page={{add .VideoFiles.Page -1}}&search={{.Search}}&sort={{.Sort}}&order={{.Order}}" class="prev">← Zurück</a>
+    {{end}}
+
+    <span>Seite {{.VideoFiles.Page}} von {{.VideoFiles.TotalPages}}</span>
+
+    {{if lt .VideoFiles.Page .VideoFiles.TotalPages}}
+    <a href="/?page={{add .VideoFiles.Page 1}}&search={{.Search}}&sort={{.Sort}}&order={{.Order}}" class="next">Weiter →</a>
+    {{end}}
+</nav>
