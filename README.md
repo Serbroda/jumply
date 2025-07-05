@@ -34,7 +34,7 @@ Whenever a new video file is added—whether it's downloaded or copied—it shou
 ### 1. Clone the Repo
 ```bash
 git clone https://github.com/Serbroda/jumply.git
-cd jumply
+cd github.com/Serbroda/jumply
 ```
 
 ### 2. Build the Binary (Linux/macOS/Windows)
@@ -46,7 +46,7 @@ This builds platform-specific binaries in `bin/`.
 
 ### 3. Run Jumply
 ```bash
-./bin/jumply-<VERSION>-<PLATFORM>
+./bin/github.com/Serbroda/jumply-<VERSION>-<PLATFORM>
 ```
 
 Then open [http://localhost:8080](http://localhost:8080) in your browser.

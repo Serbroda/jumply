@@ -1,4 +1,4 @@
-module jumply
+module github.com/Serbroda/jumply
 
 go 1.24
 
