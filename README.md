@@ -2,6 +2,12 @@
 
 **Jumply** is a minimalistic, self-hosted video player built with Go and HTMX. It recursively scans video files from defined directories, displays them in a simple web UI, and allows users to stream videos.
 
+## 💡 Motivation
+
+The idea behind Jumply is simple: I wanted to automatically list and access newly added media files across multiple root directories through a clean and minimal web interface.
+
+Whenever a new video file is added—whether it's downloaded or copied—it should instantly become available to watch in the browser without any extra steps, configurations, or overhead. No frills. Just drop it in, and hit play.
+
 ---
 
 ## ✨ Features
@@ -19,7 +25,7 @@
 
 - **Backend:** Go + Echo framework
 - **Frontend:** HTMX, Go templates
-- **Styling:** Default CSS with optional
+- **Styling:** Default CSS
 
 ---
 
@@ -46,15 +52,30 @@ This builds platform-specific binaries in `bin/`.
 Then open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ### 4. Configuration
-- Place your video files under `./testdata/` or modify the path in `main.go`
+
+Jumply uses a `.env` file to configure runtime behavior.
+Create a `.env` file in the project root with the following content:
+
+```env
+SERVER_PORT=8080
+ROOT_DIRS=./testdata/root1;./testdata/root2
+DEFAULT_PAGE_SIZE=20
+```
+
+- `SERVER_PORT`: The port your server will run on
+- `ROOT_DIRS`: Semicolon-separated list of root directories to scan recursively for video files
+- `DEFAULT_PAGE_SIZE`: How many videos to show per page
+
+If no `.env` file is present, Jumply will fall back to built-in defaults.
 
 ---
+
 ## 🚧 Roadmap
 
 - [x] Basic playback and listing
 - [x] Pagination and filtering
 - [x] HTMX integration for fragment updates
-- [ ] SQLite index + file watcher support
+- [ ] Custom CSS support
 
 ---
 
