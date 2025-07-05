@@ -15,9 +15,14 @@ import (
 
 var (
 	Version = "dev"
+
+	serverPort     = utils.GetStringFallback("SERVER_PORT", "8080")
+	rootDirs       = utils.MustGetString("ROOT_DIRS")
+	defaultSize    = utils.GetInt32Fallback("DEFAULT_PAGE_SIZE", 20)
+	videoFileRegex = utils.GetStringFallback("VIDEO_FILE_REGEX", `^[^.].*\.(mp4|avi|mkv)$`)
 )
 
-func main() {
+func init() {
 	versionFlag := flag.Bool("version", false, "show program version")
 	flag.BoolVar(versionFlag, "v", false, "shorthand for --version")
 	flag.Parse()
@@ -26,11 +31,9 @@ func main() {
 		fmt.Println(Version)
 		os.Exit(0)
 	}
+}
 
-	rootDirs := strings.Split(utils.MustGetString("ROOT_DIRS"), ";")
-	defaultSize := utils.GetInt32Fallback("DEFAULT_PAGE_SIZE", 20)
-	videoFileRegex := utils.GetStringFallback("VIDEO_FILE_REGEX", `^[^.].*\.(mp4|avi|mkv)$`)
-
+func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
@@ -38,13 +41,13 @@ func main() {
 	e.Renderer = templates.NewTemplateRenderer()
 
 	handlers.RegisterHandlers(e, handlers.Handlers{
-		RootDirs:         rootDirs,
+		RootDirs:         strings.Split(rootDirs, ";"),
 		VideoFilePattern: videoFileRegex,
 		DefaultPageSize:  defaultSize,
 	}, "")
 
 	printRoutes(e)
-	e.Logger.Fatal(e.Start(":" + utils.GetStringFallback("SERVER_PORT", "8080")))
+	e.Logger.Fatal(e.Start(":" + serverPort))
 }
 
 func printRoutes(e *echo.Echo) {
