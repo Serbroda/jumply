@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Jumply</title>
@@ -18,21 +18,24 @@
         <input
                 type="text"
                 name="search"
-                placeholder="🔍 Suche nach Video..."
+                placeholder="🔍 Search for a video..."
                 value="{{.Search}}"
                 class="search-input"
         />
 
-        <label for="sort">Sortieren nach:</label>
+        <br/>
+        <br/>
+
+        <label for="sort">Sort by:</label>
         <select name="sort">
             <option value="name" {{if eq .Sort "name"}}selected{{end}}>Name</option>
-            <option value="size" {{if eq .Sort "size"}}selected{{end}}>Größe</option>
-            <option value="modtime" {{if eq .Sort "modtime"}}selected{{end}}>Geändert am</option>
+            <option value="size" {{if eq .Sort "size"}}selected{{end}}>Size</option>
+            <option value="modtime" {{if eq .Sort "modtime"}}selected{{end}}>Last Modified</option>
         </select>
 
         <select name="order">
-            <option value="asc" {{if eq .Order "asc"}}selected{{end}}>↑ Aufsteigend</option>
-            <option value="desc" {{if eq .Order "desc"}}selected{{end}}>↓ Absteigend</option>
+            <option value="asc" {{if eq .Order "asc"}}selected{{end}}>↑ Ascending</option>
+            <option value="desc" {{if eq .Order "desc"}}selected{{end}}>↓ Descending</option>
         </select>
     </form>
 

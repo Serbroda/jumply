@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
-	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -120,7 +119,8 @@ func (h *Handlers) GetPlay(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "video.html", map[string]any{
-		"Video": file,
+		"Video":      file,
+		"StreamPath": streamOrDirect(file),
 	})
 }
 
@@ -135,8 +135,11 @@ func (h *Handlers) GetSource(c echo.Context) error {
 		}
 	}
 
-	p := path.Join(file.Dir, file.Name)
-	return c.File(p)
+	if !files.FileExists(file.Path) {
+		return echo.NewHTTPError(http.StatusNotFound, "video not found")
+	}
+
+	return c.File(file.Path)
 }
 
 func (h *Handlers) GetStream(c echo.Context) error {
@@ -150,15 +153,13 @@ func (h *Handlers) GetStream(c echo.Context) error {
 		}
 	}
 
-	inputPath := path.Join(file.Dir, file.Name)
-
-	if inputPath == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Missing file parameter")
-	}
-
 	// redirect for mp4 files. no transcode necessary
 	if strings.HasSuffix(strings.ToLower(file.Name), ".mp4") {
 		return c.Redirect(http.StatusTemporaryRedirect, "/videos/source/"+file.Id)
+	}
+
+	if !files.FileExists(file.Path) {
+		return echo.NewHTTPError(http.StatusNotFound, "video not found")
 	}
 
 	// check if ffmpeg is available
@@ -170,7 +171,7 @@ func (h *Handlers) GetStream(c echo.Context) error {
 
 	// ffmpeg transcode
 	cmd := exec.Command("ffmpeg",
-		"-i", inputPath,
+		"-i", file.Path,
 		"-f", "mp4",
 		"-movflags", "frag_keyframe+empty_moov",
 		"-vcodec", "libx264",
@@ -201,4 +202,11 @@ func (h *Handlers) GetStream(c echo.Context) error {
 func (h *Handlers) GetReload(c echo.Context) error {
 	videos.Clear()
 	return c.Redirect(http.StatusPermanentRedirect, "/")
+}
+
+func streamOrDirect(file videos.Video) string {
+	if strings.HasSuffix(strings.ToLower(file.Name), ".mp4") {
+		return "/videos/source/" + file.Id
+	}
+	return "/videos/stream/" + file.Id
 }

@@ -1,11 +1,22 @@
 package files
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
+
+func FileExists(path string) bool {
+	if _, err := os.Stat(path); err == nil {
+		return true
+	} else if errors.Is(err, os.ErrNotExist) {
+		return false
+	} else {
+		return false
+	}
+}
 
 func Scan(root string, pattern *regexp.Regexp) ([]FileEntry, error) {
 	var videos []FileEntry
@@ -22,17 +33,19 @@ func Scan(root string, pattern *regexp.Regexp) ([]FileEntry, error) {
 			return nil
 		}
 
-		relativePath, err := filepath.Rel(root, path)
+		if err != nil {
+			return nil
+		}
 
+		absolutePath, err := filepath.Abs(path)
 		if err != nil {
 			return nil
 		}
 
 		videos = append(videos, FileEntry{
-			Path:      relativePath,
 			Name:      info.Name(),
+			Path:      absolutePath,
 			Size:      info.Size(),
-			Dir:       root,
 			ModTime:   info.ModTime(),
 			Extension: filepath.Ext(path),
 		})
