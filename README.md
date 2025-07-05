@@ -39,7 +39,7 @@ cd github.com/Serbroda/jumply
 
 ### 2. Build the Binary (Linux/macOS/Windows)
 ```bash
-make all
+make build
 ```
 
 This builds platform-specific binaries in `bin/`.

@@ -15,9 +15,9 @@ SERVER_MAIN_DIR := cmd/server/main.go
 # ------------------------------------------------------------
 .PHONY: all build generate-go clean test
 
-all: clean generate-go build-server
+all: clean generate-go build
 
-build-server:
+build:
 	@echo "==> Building server Go binaries for platforms..."
 	$(call build_bin,${SERVER_MAIN_DIR},${BINARY_NAME},darwin,amd64,macos-amd64)
 	$(call build_bin,${SERVER_MAIN_DIR},${BINARY_NAME},darwin,arm64,macos-arm64)
