@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"flag"
 	"github.com/joho/godotenv"
 	"os"
 	"strconv"
@@ -110,4 +111,37 @@ func mustGetEnv(key string) string {
 		panic("mandatory env " + key + " not found")
 	}
 	return value
+}
+
+// StringFlag bindet Long- und optional Short-Variante auf dieselbe Variable.
+func StringFlag(ptr *string, defaultVal, name, short, usage string, mandatory bool) {
+	flag.StringVar(ptr, name, defaultVal, usage)
+	if short != "" {
+		flag.StringVar(ptr, short, defaultVal, usage+" (shorthand)")
+	}
+	if mandatory && ptr == nil {
+		panic("mandatory flag " + name + " not found")
+	}
+}
+
+// IntFlag bindet Long- und optional Short-Variante für Integer.
+func IntFlag(ptr *int, defaultVal int, name, short, usage string, mandatory bool) {
+	flag.IntVar(ptr, name, defaultVal, usage)
+	if short != "" {
+		flag.IntVar(ptr, short, defaultVal, usage+" (shorthand)")
+	}
+	if mandatory && ptr == nil {
+		panic("mandatory flag " + name + " not found")
+	}
+}
+
+// BoolFlag bindet Long- und optional Short-Variante für Boolean.
+func BoolFlag(ptr *bool, defaultVal bool, name, short, usage string, mandatory bool) {
+	flag.BoolVar(ptr, name, defaultVal, usage)
+	if short != "" {
+		flag.BoolVar(ptr, short, defaultVal, usage+" (shorthand)")
+	}
+	if mandatory && ptr == nil {
+		panic("mandatory flag " + name + " not found")
+	}
 }

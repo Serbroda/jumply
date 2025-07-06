@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/Serbroda/jumply"
 	"github.com/Serbroda/jumply/internal/files"
 	"github.com/Serbroda/jumply/internal/handlers"
 	"github.com/Serbroda/jumply/internal/templates"
@@ -19,29 +20,21 @@ import (
 var (
 	Version = "dev"
 
-	serverPort     = utils.GetStringFallback("SERVER_PORT", "8080")
-	rootDirs       = utils.MustGetString("ROOT_DIRS")
-	defaultSize    = utils.GetInt32Fallback("DEFAULT_PAGE_SIZE", 20)
-	videoFileRegex = utils.GetStringFallback("VIDEO_FILE_REGEX", `^[^.].*\.(mp4|avi|mkv)$`)
-	customCss      = utils.GetStringFallback("CUSTOM_CSS_FILE", `./custom/theme.css`)
+	serverPort  string
+	rootDirs    string
+	defaultSize int
+	videoRegex  string
+	customCss   string
 )
 
-func init() {
-	versionFlag := flag.Bool("version", false, "show program version")
-	flag.BoolVar(versionFlag, "v", false, "shorthand for --version")
-	flag.Parse()
-
-	if *versionFlag {
-		fmt.Println(Version)
-		os.Exit(0)
-	}
-}
-
 func main() {
+	handleProperties()
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 
-	e.Static("/static", "internal/static")
+	jumply.RegisterStaticFiles(e)
+
 	e.GET("/theme.css", func(c echo.Context) error {
 		abs, err := filepath.Abs(customCss)
 		if err != nil || !files.FileExists(abs) {
@@ -54,7 +47,7 @@ func main() {
 
 	handlers.RegisterHandlers(e, handlers.Handlers{
 		RootDirs:         strings.Split(rootDirs, ";"),
-		VideoFilePattern: videoFileRegex,
+		VideoFilePattern: videoRegex,
 		DefaultPageSize:  defaultSize,
 	}, "")
 
@@ -62,6 +55,23 @@ func main() {
 
 	fmt.Printf("Open http://localhost:%s/ in your browser\n", serverPort)
 	e.Logger.Fatal(e.Start(":" + serverPort))
+}
+
+func handleProperties() {
+	for _, arg := range os.Args[1:] {
+		if arg == "-v" || arg == "--version" {
+			fmt.Println(Version)
+			os.Exit(0)
+		}
+	}
+
+	utils.StringFlag(&serverPort, utils.GetStringFallback("SERVER_PORT", "8080"), "port", "p", "server port (env: SERVER_PORT)", false)
+	utils.StringFlag(&rootDirs, utils.GetStringFallback("ROOT_DIRS", ""), "roots", "r", "root dirs, semicolon-separated (env: ROOT_DIRS)", true)
+	utils.IntFlag(&defaultSize, utils.GetInt32Fallback("DEFAULT_PAGE_SIZE", 20), "pagesize", "n", "default page size (env: DEFAULT_PAGE_SIZE)", false)
+	utils.StringFlag(&videoRegex, utils.GetStringFallback("VIDEO_FILE_REGEX", `^[^.].*\.(mp4|avi|mkv)$`), "videoregex", "x", "video file regex (env: VIDEO_FILE_REGEX)", false)
+	utils.StringFlag(&customCss, utils.GetStringFallback("CUSTOM_CSS_FILE", `./theme.css`), "css", "c", "path to custom CSS (env: CUSTOM_CSS_FILE)", false)
+
+	flag.Parse()
 }
 
 func printRoutes(e *echo.Echo) {
