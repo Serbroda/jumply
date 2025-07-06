@@ -3,13 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/Serbroda/jumply/internal/files"
 	"github.com/Serbroda/jumply/internal/handlers"
 	"github.com/Serbroda/jumply/internal/templates"
 	"github.com/Serbroda/jumply/internal/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,6 +23,7 @@ var (
 	rootDirs       = utils.MustGetString("ROOT_DIRS")
 	defaultSize    = utils.GetInt32Fallback("DEFAULT_PAGE_SIZE", 20)
 	videoFileRegex = utils.GetStringFallback("VIDEO_FILE_REGEX", `^[^.].*\.(mp4|avi|mkv)$`)
+	customCss      = utils.GetStringFallback("CUSTOM_CSS_FILE", `./custom/theme.css`)
 )
 
 func init() {
@@ -38,6 +42,14 @@ func main() {
 	e.Use(middleware.Logger())
 
 	e.Static("/static", "internal/static")
+	e.GET("/theme.css", func(c echo.Context) error {
+		abs, err := filepath.Abs(customCss)
+		if err != nil || !files.FileExists(abs) {
+			return c.NoContent(http.StatusNotFound)
+		}
+		return c.File(abs)
+	})
+
 	e.Renderer = templates.NewTemplateRenderer()
 
 	handlers.RegisterHandlers(e, handlers.Handlers{
@@ -47,6 +59,8 @@ func main() {
 	}, "")
 
 	printRoutes(e)
+
+	fmt.Printf("Open http://localhost:%s/ in your browser\n", serverPort)
 	e.Logger.Fatal(e.Start(":" + serverPort))
 }
 

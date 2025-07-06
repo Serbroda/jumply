@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+    <!-- Abgerundetes Quadrat als Hintergrund -->
+    <rect width="64" height="64" rx="12" fill="#1F2937"/>
+    <!-- J-Strich -->
+    <rect x="20" y="16" width="6" height="32" rx="3" fill="#FBBF24"/>
+    <!-- Play-Dreieck als J-Fuß -->
+    <polygon points="30,20 30,44 46,32" fill="#FBBF24"/>
+</svg>
