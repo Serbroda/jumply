@@ -18,6 +18,7 @@ type Handlers struct {
 	RootDirs         []string
 	VideoFilePattern string
 	DefaultPageSize  int
+	FfmpegBinPath    string
 }
 
 func RegisterHandlers(e *echo.Echo, h Handlers, baseUrl string, middlewares ...echo.MiddlewareFunc) {
@@ -163,14 +164,14 @@ func (h *Handlers) GetStream(c echo.Context) error {
 	}
 
 	// check if ffmpeg is available
-	_, err = exec.LookPath("ffmpeg")
+	_, err = exec.LookPath(h.FfmpegBinPath)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError,
 			"ffmpeg not found: required to stream non-MP4 videos like "+file.Name)
 	}
 
 	// ffmpeg transcode
-	cmd := exec.Command("ffmpeg",
+	cmd := exec.Command(h.FfmpegBinPath,
 		"-i", file.Path,
 		"-f", "mp4",
 		"-movflags", "frag_keyframe+empty_moov",

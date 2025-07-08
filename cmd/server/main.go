@@ -25,6 +25,7 @@ var (
 	defaultSize int
 	videoRegex  string
 	customCss   string
+	ffmpegCmd   string
 )
 
 func main() {
@@ -70,6 +71,7 @@ func handleProperties() {
 	utils.IntFlag(&defaultSize, utils.GetInt32Fallback("DEFAULT_PAGE_SIZE", 20), "pagesize", "n", "default page size (env: DEFAULT_PAGE_SIZE)", false)
 	utils.StringFlag(&videoRegex, utils.GetStringFallback("VIDEO_FILE_REGEX", `^[^.].*\.(mp4|avi|mkv)$`), "videoregex", "x", "video file regex (env: VIDEO_FILE_REGEX)", false)
 	utils.StringFlag(&customCss, utils.GetStringFallback("CUSTOM_CSS_FILE", `./theme.css`), "css", "c", "path to custom CSS (env: CUSTOM_CSS_FILE)", false)
+	utils.StringFlag(&customCss, utils.GetStringFallback("FFMPEG_BIN_PATH", `ffmpeg`), "ffmpeg", "", "path to custom CSS (env: CUSTOM_CSS_FILE)", false)
 
 	flag.Parse()
 }

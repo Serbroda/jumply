@@ -62,6 +62,7 @@ ROOT_DIRS=./testdata/root1;./testdata/root2 # required
 DEFAULT_PAGE_SIZE=20
 VIDEO_FILE_REGEX=^[^.].*\.(mp4|avi|mkv)$
 CUSTOM_CSS_FILE=./theme.css
+FFMPEG_BIN_PATH=ffmpeg
 ```
 
 - `SERVER_PORT`: The port your server will run on
@@ -69,7 +70,7 @@ CUSTOM_CSS_FILE=./theme.css
 - `DEFAULT_PAGE_SIZE`: How many videos to show per page
 - `VIDEO_FILE_REGEX`: Regex filter for scanning files from root dirs
 - `CUSTOM_CSS_FILE`: Path to a custom css file for individual styling
-
+- `FFMPEG_BIN_PATH`: Binary path to ffmpeg (needed for .avi, .mkv...)
 If no `.env` file is present, Jumply will fall back to built-in defaults.
 
 ---
